@@ -1,0 +1,26 @@
+{
+  "name": "ff-express-fall26",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/umerniaz05-bip/FF-Express-Fall26.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/umerniaz05-bip/FF-Express-Fall26/issues"
+  },
+  "homepage": "https://github.com/umerniaz05-bip/FF-Express-Fall26#readme",
+  "dependencies": {
+    "express": "^5.3.0",
+    "hbs": "^4.4.0"
+  }
+}
