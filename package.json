@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/umerniaz05-bip/FF-Express-Fall26#readme",
   "dependencies": {
+    "cookie-parser": "^1.4.7",
     "express": "^5.3.0",
     "hbs": "^4.4.0"
   }
