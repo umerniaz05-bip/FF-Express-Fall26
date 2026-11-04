@@ -1,0 +1,68 @@
+<h1>Sports Showdown</h1>
+<p>What is your favorite sport to watch?</p>
+
+<form action="/poll" method="post">
+  <label for="sport">Choose a sport:</label>
+  <select id="sport" name="sport" required>
+    <option value="football">Football</option>
+    <option value="basketball">Basketball</option>
+    <option value="baseball">Baseball</option>
+    <option value="soccer">Soccer</option>
+    <option value="tennis">Tennis</option>
+  </select>
+
+  <button type="submit">Vote</button>
+</form>
+
+<h2>Your Votes</h2>
+
+<p>Football: {{votes.football}}</p>
+<p>Basketball: {{votes.basketball}}</p>
+<p>Baseball: {{votes.baseball}}</p>
+<p>Soccer: {{votes.soccer}}</p>
+<p>Tennis: {{votes.tennis}}</p>
+
+<div>
+  <canvas id="barChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const ctx = document.getElementById("barChart");
+
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["Football", "Basketball", "Baseball", "Soccer", "Tennis"],
+      datasets: [{
+        label: "Votes",
+        data: [
+          {{votes.football}},
+          {{votes.basketball}},
+          {{votes.baseball}},
+          {{votes.soccer}},
+          {{votes.tennis}}
+        ],
+        backgroundColor: [
+          "#008e97",
+          "#f9802e",
+          "#0077c8",
+          "#44a340",
+          "#8b5fc7"
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
+</script>

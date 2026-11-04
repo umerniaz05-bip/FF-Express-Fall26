@@ -9,6 +9,8 @@ app.get("/",(req,res)=>{
 
 app.use(cookieParser());
 
+app.use(express.urlencoded({ extended: false }));
+
 app.set("view engine", "hbs");
 
 app.get("/home", (req,res)=>{
@@ -45,6 +47,53 @@ app.post("/form", (req,res)=>{
     res.render("response", {
         votes : votes
     })
+});
+
+app.get("/poll", (req, res) => {
+    let votes = {
+        football: 0,
+        basketball: 0,
+        baseball: 0,
+        soccer: 0,
+        tennis: 0
+    };
+
+    if (req.cookies.sportsVotes != undefined) {
+        votes = req.cookies.sportsVotes;
+    }
+
+    res.render("poll", {
+        title: "Sports Showdown",
+        votes: votes
+    });
+});
+
+app.post("/poll", (req, res) => {
+    const sport = req.body.sport;
+
+    let votes = {
+        football: 0,
+        basketball: 0,
+        baseball: 0,
+        soccer: 0,
+        tennis: 0
+    };
+
+    if (req.cookies.sportsVotes != undefined) {
+        votes = req.cookies.sportsVotes;
+    }
+
+    if (votes[sport] === undefined) {
+        return res.redirect("/poll");
+    }
+
+    votes[sport] = votes[sport] + 1;
+
+    res.cookie("sportsVotes", votes, {
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.redirect("/poll");
 });
 
 app.get("/:name",(req,res)=>{
