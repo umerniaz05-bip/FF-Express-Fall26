@@ -1,0 +1,389 @@
+<style>
+  .gaming-dashboard-v2 {
+    box-sizing: border-box;
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 24px;
+    background: #101525;
+    color: #f1f3ff;
+    border-radius: 12px;
+    font-family: Arial, sans-serif;
+    color-scheme: dark;
+  }
+
+  .gaming-dashboard-v2 h1,
+  .gaming-dashboard-v2 h2,
+  .gaming-dashboard-v2 a {
+    color: #b69cff;
+  }
+
+  .gaming-dashboard-v2 .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    margin: 24px 0;
+  }
+
+  .gaming-dashboard-v2 button {
+    padding: 10px 16px;
+    background: #ffb4b4;
+    color: #101525;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .gaming-dashboard-v2 .summary,
+  .gaming-dashboard-v2 .charts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .gaming-dashboard-v2 .panel {
+    min-width: 0;
+    padding: 20px;
+    background: #1b2033;
+    border-radius: 10px;
+  }
+
+  .gaming-dashboard-v2 .summary strong {
+    display: block;
+    margin-top: 8px;
+    color: #b69cff;
+    font-size: 32px;
+  }
+
+  .gaming-dashboard-v2 .chart-area {
+    position: relative;
+    height: 320px;
+  }
+
+  .gaming-dashboard-v2 .section-panel {
+    margin-top: 20px;
+  }
+
+  .gaming-dashboard-v2 .table-scroll {
+    overflow-x: auto;
+  }
+
+  .gaming-dashboard-v2 table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .gaming-dashboard-v2 th,
+  .gaming-dashboard-v2 td {
+    padding: 12px;
+    border-bottom: 1px solid #59617c;
+  }
+
+  .gaming-dashboard-v2 caption {
+    padding-bottom: 12px;
+    text-align: left;
+    color: #c5cbe0;
+  }
+
+  #sessionSketchV2 {
+    width: 100%;
+  }
+
+  #sessionSketchV2 canvas {
+    display: block;
+  }
+
+  .gaming-dashboard-v2 a:focus-visible,
+  .gaming-dashboard-v2 button:focus-visible {
+    outline: 3px solid #b69cff;
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 700px) {
+    .gaming-dashboard-v2 .charts,
+    .gaming-dashboard-v2 .summary {
+      grid-template-columns: 1fr;
+    }
+
+    .gaming-dashboard-v2 {
+      padding: 16px;
+    }
+  }
+</style>
+
+<main class="gaming-dashboard-v2">
+  <h1>Gaming Dashboard</h1>
+  <p>Version 2 · Your latest 20 gaming sessions.</p>
+
+  <div class="actions">
+    <a href="/tracker/v2">← Add a session</a>
+    <a href="/tracker/v1/dashboard">Compare with v1</a>
+
+    <form action="/tracker/v2/clear" method="post">
+      <button type="submit">Clear all data</button>
+    </form>
+  </div>
+
+  <div class="summary">
+    <section class="panel">
+      Saved sessions
+      <strong>{{sessionCount}}</strong>
+    </section>
+
+    <section class="panel">
+      Total minutes played
+      <strong>{{totalMinutes}}</strong>
+    </section>
+  </div>
+
+  {{#unless sessionCount}}
+    <p>No sessions yet. Add a session to start your dashboard.</p>
+  {{/unless}}
+
+  <div class="charts">
+    <section class="panel">
+      <h2>Gaming Minutes by Date</h2>
+      <div class="chart-area">
+        <canvas id="dailyChartV2"></canvas>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Time by Game</h2>
+      <div class="chart-area">
+        <canvas id="gameChartV2"></canvas>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel section-panel">
+    <h2>Gaming Session Bubbles</h2>
+    <p>
+      Each circle represents one session. Minutes from 1–1440
+      map to circle diameters from 80–145 pixels.
+      Colors match the game chart.
+    </p>
+    <div id="sessionSketchV2"></div>
+  </section>
+
+  <section class="panel section-panel">
+    <h2>Session History</h2>
+
+    {{#if sessionCount}}
+      <div class="table-scroll">
+        <table>
+          <caption>Sessions in the order they were added.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Game</th>
+              <th scope="col">Minutes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each entries}}
+              <tr>
+                <td>{{date}}</td>
+                <td>{{game}}</td>
+                <td>{{minutes}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    {{else}}
+      <p>No saved sessions.</p>
+    {{/if}}
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.8.0/p5.min.js"></script>
+
+<script>
+  const entries = {{{entriesJSON}}};
+
+  const gameColors = {
+    "Minecraft": "#4ade80",
+    "Fortnite": "#60a5fa",
+    "Elden Ring": "#b69cff",
+    "Red Dead Redemption 2": "#fb923c",
+    "Other": "#a1a1aa"
+  };
+
+  const dailyTotals = {};
+  const gameTotals = {};
+
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+
+    if (dailyTotals[entry.date] === undefined) {
+      dailyTotals[entry.date] = 0;
+    }
+
+    if (gameTotals[entry.game] === undefined) {
+      gameTotals[entry.game] = 0;
+    }
+
+    dailyTotals[entry.date] += entry.minutes;
+    gameTotals[entry.game] += entry.minutes;
+  }
+
+  const dates = Object.keys(dailyTotals).sort();
+  const dailyMinutes = [];
+
+  for (let i = 0; i < dates.length; i++) {
+    dailyMinutes.push(dailyTotals[dates[i]]);
+  }
+
+  const games = Object.keys(gameTotals);
+  const gameMinutes = [];
+  const chartColors = [];
+
+  for (let i = 0; i < games.length; i++) {
+    gameMinutes.push(gameTotals[games[i]]);
+    chartColors.push(gameColors[games[i]]);
+  }
+
+  Chart.defaults.color = "#f1f3ff";
+
+  new Chart(document.getElementById("dailyChartV2"), {
+    type: "bar",
+    data: {
+      labels: dates,
+      datasets: [{
+        label: "Minutes Played",
+        data: dailyMinutes,
+        backgroundColor: "#b69cff"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: "Gaming Minutes by Date"
+        }
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "Date"
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Total Minutes"
+          }
+        }
+      }
+    }
+  });
+
+  new Chart(document.getElementById("gameChartV2"), {
+    type: "doughnut",
+    data: {
+      labels: games,
+      datasets: [{
+        label: "Minutes Played",
+        data: gameMinutes,
+        backgroundColor: chartColors,
+        borderColor: "#1b2033"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: "Time by Game"
+        },
+        legend: {
+          position: "bottom"
+        }
+      }
+    }
+  });
+
+  // Calculate a canvas width that fits inside its dashboard panel.
+  function gamingV2CanvasWidth() {
+    const container = document.getElementById("sessionSketchV2");
+    return Math.max(1, Math.min(container.clientWidth, 1000));
+  }
+
+  // Calculate enough grid rows for every saved session.
+  function gamingV2CanvasHeight(canvasWidth) {
+    const columns = Math.max(1, Math.floor(canvasWidth / 180));
+    const rows = Math.max(1, Math.ceil(entries.length / columns));
+    return rows * 220;
+  }
+
+  // Create the sketch inside its dashboard container.
+  function setup() {
+    const canvasWidth = gamingV2CanvasWidth();
+    const canvas = createCanvas(
+      canvasWidth,
+      gamingV2CanvasHeight(canvasWidth)
+    );
+
+    canvas.parent("sessionSketchV2");
+    textFont("Arial");
+    noLoop();
+  }
+
+  // Draw session circles and readable labels beneath them.
+  function draw() {
+    background("#1b2033");
+    noStroke();
+    textAlign(CENTER, CENTER);
+
+    if (entries.length === 0) {
+      fill("#f1f3ff");
+      textSize(14);
+      text("No sessions yet", width / 2, height / 2);
+      return;
+    }
+
+    const columns = Math.max(1, Math.floor(width / 180));
+    const cellWidth = width / columns;
+
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const x = (i % columns) * cellWidth + cellWidth / 2;
+      const rowTop = Math.floor(i / columns) * 220;
+      const diameter = map(entry.minutes, 1, 1440, 80, 145);
+      const fittedDiameter = Math.min(diameter, cellWidth - 12);
+
+      fill(gameColors[entry.game]);
+      circle(x, rowTop + 80, fittedDiameter);
+
+      fill("#f1f3ff");
+      textSize(12);
+
+      text(
+        entry.game + "\n" + entry.minutes + " min",
+        x - (cellWidth - 16) / 2,
+        rowTop + 158,
+        cellWidth - 16,
+        54
+      );
+    }
+  }
+
+  // Recalculate the grid when the browser window changes size.
+  function windowResized() {
+    const canvasWidth = gamingV2CanvasWidth();
+
+    resizeCanvas(
+      canvasWidth,
+      gamingV2CanvasHeight(canvasWidth)
+    );
+  }
+</script>

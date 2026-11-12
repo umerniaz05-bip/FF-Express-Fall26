@@ -1,0 +1,142 @@
+<style>
+  .gaming-form-v2 {
+    box-sizing: border-box;
+    max-width: 580px;
+    margin: 40px auto;
+    padding: 28px;
+    background: #1b2033;
+    color: #f1f3ff;
+    border-radius: 12px;
+    font-family: Arial, sans-serif;
+    color-scheme: dark;
+  }
+
+  .gaming-form-v2 h1 {
+    color: #b69cff;
+  }
+
+  .gaming-form-v2 .version {
+    color: #b69cff;
+    font-weight: bold;
+  }
+
+  .gaming-form-v2 label {
+    display: block;
+    margin-top: 22px;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+
+  .gaming-form-v2 input,
+  .gaming-form-v2 select {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #59617c;
+    border-radius: 6px;
+    background: #101525;
+    color: white;
+    font-size: 16px;
+  }
+
+  .gaming-form-v2 .hint {
+    margin-top: 8px;
+    color: #c5cbe0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .gaming-form-v2 button {
+    margin-top: 24px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    background: #b69cff;
+    color: #101525;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .gaming-form-v2 a {
+    display: inline-block;
+    margin-top: 22px;
+    color: #b69cff;
+  }
+
+  .gaming-form-v2 .error {
+    padding: 14px;
+    border: 1px solid #ffb4b4;
+    border-radius: 6px;
+    color: #ffb4b4;
+    line-height: 1.5;
+  }
+
+  .gaming-form-v2 input:focus,
+  .gaming-form-v2 select:focus,
+  .gaming-form-v2 button:focus-visible,
+  .gaming-form-v2 a:focus-visible {
+    outline: 3px solid #b69cff;
+    outline-offset: 3px;
+  }
+</style>
+
+<main class="gaming-form-v2">
+  <p class="version">VERSION 2</p>
+  <h1>Gaming Tracker</h1>
+  <p>Log a session and discover where your gaming time goes.</p>
+
+  {{#if error}}
+    <p class="error" role="alert">{{error}}</p>
+  {{/if}}
+
+  <form action="/tracker/v2" method="post">
+    <label for="sessionDateV2">Session date</label>
+    <input
+      type="date"
+      id="sessionDateV2"
+      name="date"
+      value="{{date}}"
+      min="2020-01-01"
+      max="{{today}}"
+      aria-describedby="dateHintV2"
+      required
+    >
+    <p class="hint" id="dateHintV2">
+      Choose a date from January 1, 2020 through today ({{today}}).
+    </p>
+
+    <label for="sessionGameV2">Game</label>
+    <select id="sessionGameV2" name="game" required>
+      <option value="">Choose a game</option>
+      {{#each gameOptions}}
+        <option value="{{name}}" {{#if selected}}selected{{/if}}>
+          {{name}}
+        </option>
+      {{/each}}
+    </select>
+
+    <label for="sessionMinutesV2">Minutes played</label>
+    <input
+      type="number"
+      id="sessionMinutesV2"
+      name="minutes"
+      value="{{minutes}}"
+      min="1"
+      max="1440"
+      step="1"
+      aria-describedby="minutesHintV2"
+      required
+    >
+    <p class="hint" id="minutesHintV2">
+      Enter a whole number from 1 to 1440 minutes.
+    </p>
+
+    <button type="submit">Add Session</button>
+  </form>
+
+  <a href="/tracker/v2/dashboard">View dashboard →</a>
+  <p class="hint">
+    Sessions are saved in this browser for seven days.
+    Only the latest 20 sessions are kept.
+  </p>
+</main>
