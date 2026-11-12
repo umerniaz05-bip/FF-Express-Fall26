@@ -1,0 +1,85 @@
+<style>
+  .gaming-form {
+    max-width: 520px;
+    margin: 40px auto;
+    padding: 28px;
+    background: #1b2033;
+    color: #f1f3ff;
+    border-radius: 12px;
+    font-family: Arial, sans-serif;
+  }
+
+  .gaming-form h1 {
+    color: #b69cff;
+  }
+
+  .gaming-form label {
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 8px;
+  }
+
+  .gaming-form input,
+  .gaming-form select {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #59617c;
+    border-radius: 6px;
+    background: #101525;
+    color: white;
+    font-size: 16px;
+  }
+
+  .gaming-form button {
+    margin-top: 24px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    background: #b69cff;
+    color: #101525;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  .gaming-form a {
+    display: inline-block;
+    margin-top: 22px;
+    color: #b69cff;
+  }
+
+  .gaming-form .error {
+    color: #ffb4b4;
+  }
+</style>
+
+<main class="gaming-form">
+  <h1>Gaming Tracker</h1>
+  <p>Version 1 · Log your sessions and see where your gaming time goes.</p>
+
+  {{#if error}}
+    <p class="error" role="alert">{{error}}</p>
+  {{/if}}
+
+  <form action="/tracker/v1" method="post">
+    <label for="date">Session date</label>
+    <input type="date" id="date" name="date" required>
+
+    <label for="game">Game</label>
+    <select id="game" name="game" required>
+      <option value="">Choose a game</option>
+      <option value="Minecraft">Minecraft</option>
+      <option value="Fortnite">Fortnite</option>
+      <option value="Elden Ring">Elden Ring</option>
+      <option value="Red Dead Redemption 2">Red Dead Redemption 2</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label for="minutes">Minutes played</label>
+    <input type="number" id="minutes" name="minutes" min="1" step="1" required>
+
+    <button type="submit">Add Session</button>
+  </form>
+
+  <a href="/tracker/v1/dashboard">View dashboard →</a>
+</main>

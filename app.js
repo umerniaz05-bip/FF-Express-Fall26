@@ -96,6 +96,85 @@ app.post("/poll", (req, res) => {
     res.redirect("/poll");
 });
 
+// ----- Tracker v1 routes -----
+
+// Show the gaming session form.
+app.get("/tracker/v1", (req, res) => {
+    res.render("tracker-v1", {
+        title: "Gaming Tracker v1"
+    });
+});
+
+// Add a gaming session and save the latest 20 entries.
+app.post("/tracker/v1", (req, res) => {
+    let entries = [];
+
+    if (Array.isArray(req.cookies.gamingLog_v1)) {
+        entries = req.cookies.gamingLog_v1;
+    }
+
+    const date = req.body.date;
+    const game = req.body.game;
+    const minutes = Number(req.body.minutes);
+
+    const games = [
+        "Minecraft",
+        "Fortnite",
+        "Elden Ring",
+        "Red Dead Redemption 2",
+        "Other"
+    ];
+
+    if (!date || !games.includes(game) ||
+        !Number.isFinite(minutes) || minutes < 1) {
+        return res.status(400).render("tracker-v1", {
+            title: "Gaming Tracker v1",
+            error: "Enter a date, choose a game, and enter at least 1 minute."
+        });
+    }
+
+    entries.push({
+        date: date,
+        game: game,
+        minutes: minutes
+    });
+
+    entries = entries.slice(-20);
+
+    res.cookie("gamingLog_v1", entries, {
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/"
+    });
+
+    res.redirect("/tracker/v1/dashboard");
+});
+
+// Read saved sessions and send them to the dashboard.
+app.get("/tracker/v1/dashboard", (req, res) => {
+    let entries = [];
+
+    if (Array.isArray(req.cookies.gamingLog_v1)) {
+        entries = req.cookies.gamingLog_v1;
+    }
+
+    res.render("tracker-dashboard-v1", {
+        title: "Gaming Dashboard v1",
+        entries: entries,
+        entriesJSON: JSON.stringify(entries).replace(/</g, "\\u003c")
+    });
+});
+
+// Delete the gaming tracker cookie.
+app.post("/tracker/v1/clear", (req, res) => {
+    res.clearCookie("gamingLog_v1", {
+        path: "/"
+    });
+
+    res.redirect("/tracker/v1/dashboard");
+});
+
 app.get("/:name",(req,res)=>{
     res.send("My name is: " + req.params.name);
 })
